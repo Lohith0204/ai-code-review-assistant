@@ -33,7 +33,7 @@ def test_get_me():
     data = response.json()
     assert "user_id" in data
     assert "email" in data
-    assert data["plan"] == "free"
+    assert data["plan"] == "open-source"
 
 @patch("app.api.routes.orchestrator")
 def test_review_endpoint(mock_orchestrator):
