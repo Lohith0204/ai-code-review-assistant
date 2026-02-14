@@ -21,8 +21,15 @@ class FileIngestionService:
         # Convert KB to bytes
         max_file_bytes = self.max_file_size_kb * 1024
 
+        supported_extensions = {
+            ".py", ".js", ".java", ".ts", ".tsx", ".jsx", ".cpp", ".c", ".h",
+            ".go", ".rs", ".rb", ".php", ".cs", ".swift", ".kt", ".scala",
+            ".sh", ".bash", ".yml", ".yaml", ".json", ".xml", ".html", ".css",
+            ".sql", ".r", ".m", ".dart", ".lua", ".pl", ".vim"
+        }
+
         for path in Path(root_path).rglob("*"):
-            if path.is_file() and path.suffix in {".py", ".js", ".java", ".ts", ".tsx", ".jsx"}:
+            if path.is_file() and path.suffix.lower() in supported_extensions:
                 file_count += 1
                 if file_count > self.max_files:
                     raise HTTPException(

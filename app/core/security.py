@@ -8,13 +8,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 if os.environ.get("SKIP_AUTH") != "true":
     try:
         if not firebase_admin._apps:
-            # Path for Render secret files
-            cred_path = "/etc/secrets/firebase-service-account.json"
+            # Check environment variable first, then fallback to standard mount path
+            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "/etc/secrets/firebase-service-account.json")
+            
             if os.path.exists(cred_path):
                 cred = credentials.Certificate(cred_path)
             else:
-                # Fallback for local development
-                cred = credentials.ApplicationDefault() 
+                # Local development fallback
+                cred = credentials.ApplicationDefault()
+                
             firebase_admin.initialize_app(cred)
     except Exception as e:
         print(f"Warning: Firebase Admin not initialized: {e}")

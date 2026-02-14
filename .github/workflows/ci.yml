@@ -42,14 +42,16 @@ jobs:
     
     - name: Import check
       run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
         python -c "from app.main import app; print('✅ All imports resolved')"
     
     - name: Run tests
       env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy_key_for_tests' }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         SKIP_AUTH: 'true'
       run: |
-        pytest tests/ -v --tb=short
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
+        OPENAI_API_KEY=${OPENAI_API_KEY:-dummy_key_for_tests} pytest tests/ -v --tb=short
 
   docker-build:
     runs-on: ubuntu-latest
@@ -75,11 +77,25 @@ jobs:
           -e OPENAI_API_KEY=dummy \
           ai-code-review-assistant:latest
         
-        # Wait for container to be healthy
-        timeout 60 bash -c 'until docker inspect --format="{{.State.Health.Status}}" test-container | grep -q healthy; do sleep 2; done'
+        # Wait for container to be healthy with robust check
+        echo "Waiting for container to be healthy..."
+        for i in {1..30}; do
+          STATUS=$(docker inspect --format="{{.State.Health.Status}}" test-container 2>/dev/null || echo "starting")
+          if [ "$STATUS" == "healthy" ]; then
+            echo "Container is healthy!"
+            break
+          fi
+          if [ "$STATUS" == "unhealthy" ]; then
+            echo "Container became unhealthy!"
+            docker logs test-container
+            exit 1
+          fi
+          echo "Status: $STATUS... waiting ($i/30)"
+          sleep 2
+        done
         
-        # Test health endpoint
-        curl -f http://localhost:8000/health || exit 1
+        # Final verification via curl
+        curl -f http://localhost:8000/health || (docker logs test-container && exit 1)
         
         # Cleanup
         docker stop test-container

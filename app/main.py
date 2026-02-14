@@ -17,6 +17,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# --- Startup Events ---
+@app.on_event("startup")
+async def startup_event():
+    # Pre-warm the RAG orchestrator (loads the AI model into memory)
+    from app.services.rag_orchestrator import RAGOrchestrator
+    print("Pre-warming AI models...")
+    RAGOrchestrator()
+    print("AI models ready to serve.")
+
 # --- Security: CORS ---
 # In production, restrict to exact frontend domain and disable credentials for unknown origins.
 # Example: ALLOWED_ORIGINS=https://a.com, https://b.com
