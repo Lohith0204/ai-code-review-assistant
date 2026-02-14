@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Review Assistant | Professional PR Insights</title>
+    <meta name="description" content="Automated, high-fidelity AI code reviews for modern engineering teams.">
+
+    <!-- Professional Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container nav-content">
+            <div class="logo">
+                <i data-lucide="shield-check"></i>
+                AI <span>Code Review Assistant</span>
+            </div>
+
+            <div id="authActions" class="user-profile hidden">
+                <button id="helpButton" class="btn-icon" title="How to use">
+                    <i data-lucide="help-circle"></i>
+                </button>
+                <div class="email-chip" id="userEmail">user@example.com</div>
+                <button id="logoutButton" class="btn btn-secondary">
+                    <i data-lucide="log-out"></i> Sign Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Landing / Login Section -->
+        <section id="loginSection" class="page-header">
+            <h1>Elevate your code quality.</h1>
+            <p>High-fidelity AI reviews for your pull requests, built on private RAG architecture.</p>
+
+            <div style="margin-top: 2.5rem; display: flex; gap: 1rem;">
+                <button id="loginButton" class="btn btn-primary btn-lg">
+                    <i data-lucide="github"></i> Start with Google Login
+                </button>
+                <button id="viewDocsButton" class="btn btn-secondary">
+                    View Architecture
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Dashboard App -->
+        <section id="appSection" class="hidden">
+            <header class="page-header" style="border: none; padding-top: 3rem;">
+                <h1>Review Dashboard</h1>
+                <p>Submit a GitHub Pull Request for a deep architectural review.</p>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Submission Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 style="font-size: 1rem; font-weight: 600;">Initiate Review</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="form-group">
+                            <label for="prUrl">Pull Request URL</label>
+                            <input type="text" id="prUrl" class="input-control"
+                                placeholder="https://github.com/owner/repo/pull/123">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="githubToken">GitHub Access Token</label>
+                            <input type="password" id="githubToken" class="input-control"
+                                placeholder="ghp_xxxxxxxxxxxx">
+                            <div style="margin-top: 0.5rem;">
+                                <small style="color: var(--text-muted);">
+                                    Use a <a href="https://github.com/settings/tokens?type=beta" target="_blank"
+                                        style="color: var(--brand-accent);">Fine-grained token</a> with Read contents &
+                                    PR permissions.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reviewQuery">Review Focus (Optional)</label>
+                            <textarea id="reviewQuery" class="input-control" rows="3"
+                                placeholder="Identify logic errors, security risks and potential optimizations..."></textarea>
+                        </div>
+
+                        <button id="reviewButton" class="btn btn-primary" style="width: 100%;">
+                            <i data-lucide="zap"></i> Analyze Pull Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sidebar Actions / Stats -->
+                <div class="card" style="height: fit-content;">
+                    <div class="card-header">
+                        <h2 style="font-size: 1rem; font-weight: 600;">Infrastructure</h2>
+                    </div>
+                    <div class="card-content">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <h3
+                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    Model Status</h3>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                                    <span
+                                        style="width: 8px; height: 8px; border-radius: 50%; background: var(--brand-success);"></span>
+                                    GPT-4o (Active)
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3
+                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    RAG Engine</h3>
+                                <div style="font-size: 0.875rem;">
+                                    MiniLM-L6-v2 In-Memory Store
+                                </div>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-main);">
+
+                            <button id="supportButton" class="btn btn-support" style="width: 100%;">
+                                <i data-lucide="heart"></i> Support this Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden" style="margin-top: 3rem;">
+                <div class="card">
+                    <div class="card-content" style="text-align: center; padding: 4rem 2rem;">
+                        <div class="skeleton"
+                            style="width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 1.5rem;"></div>
+                        <h3 style="margin-bottom: 0.5rem;">Analyzing Architecture...</h3>
+                        <p style="color: var(--text-muted);">Downloading PR files, generating embeddings, and performing
+                            semantic search.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden result-section">
+                <div class="card" style="border-top: 4px solid var(--brand-primary);">
+                    <div class="card-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2 style="font-size: 1.125rem; font-weight: 700;">Review Findings</h2>
+                        <a id="reviewUrl" href="#" target="_blank" class="btn btn-secondary btn-sm">
+                            <i data-lucide="external-link"></i> View on GitHub
+                        </a>
+                    </div>
+                    <div class="card-content">
+                        <!-- Summary -->
+                        <div class="result-block">
+                            <h3><i data-lucide="file-text"></i> Summary</h3>
+                            <div id="resultSummary" class="summary-text">
+                                Analysis pending...
+                            </div>
+                        </div>
+
+                        <!-- Risks -->
+                        <div class="result-block">
+                            <h3><i data-lucide="alert-triangle"></i> Identified Risks</h3>
+                            <div id="resultRisks" class="findings-list">
+                                <!-- Risks items injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Suggestions -->
+                        <div class="result-block">
+                            <h3><i data-lucide="lightbulb"></i> Optimization Suggestions</h3>
+                            <div id="resultSuggestions" class="findings-list">
+                                <!-- Suggestions injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Files -->
+                        <div class="result-block">
+                            <h3><i data-lucide="files"></i> Analyzed Context</h3>
+                            <div id="resultFiles" class="findings-list"
+                                style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                <!-- Files injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorSection" class="hidden" style="margin-top: 3rem;">
+                <div class="card" style="border-left: 4px solid var(--brand-danger);">
+                    <div class="card-content">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <i data-lucide="x-circle" style="color: var(--brand-danger);"></i>
+                            <div>
+                                <h3 style="font-size: 1rem;">Review Failed</h3>
+                                <p id="errorMessage" style="color: var(--text-muted); font-size: 0.875rem;"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Support Modal -->
+    <div id="supportModal" class="modal hidden">
+        <div class="modal-card">
+            <button id="closeModal" class="close-btn">&times;</button>
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Support the Mission</h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Your support helps maintain the infrastructure and
+                scale the AI models.</p>
+
+            <div class="qr-frame">
+                <img src="/static/support_qr.png" alt="Support QR" class="qr-img">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <code
+                    style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: 0.75rem; border: 1px solid var(--border-main);">
+                    upi: sample@upi
+                </code>
+            </div>
+
+            <p style="font-size: 0.8125rem; color: var(--text-muted); line-height: 1.6;">
+                "Every contribution helps reduce latency and improve the depth of our RAG analysis. Thank you for being
+                part of the journey."
+            </p>
+
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-main); padding-top: 1.5rem;">
+                <p style="color: var(--brand-success); font-weight: 600; font-size: 0.875rem;">Verified Production Build
+                    v1.0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instruction Modal -->
+    <div id="instructionModal" class="modal hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <button id="closeInstructionModal" class="close-btn">&times;</button>
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem;">How to Use the Assistant</h2>
+
+            <div class="instruction-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-body">
+                        <h3>Prepare your Pull Request</h3>
+                        <p>Open a Pull Request on GitHub and copy the full URL from your browser. It should look like:
+                            <code>https://github.com/owner/repo/pull/123</code></p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-body">
+                        <h3>Generate a GitHub Token</h3>
+                        <p>We need access to read your code. Create a <a
+                                href="https://github.com/settings/tokens?type=beta" target="_blank"
+                                style="color: var(--brand-accent);">Fine-grained Personal Access Token</a> with these
+                            specific permissions:</p>
+                        <ul style="margin: 0.5rem 0 0 1.25rem; font-size: 0.8125rem; color: var(--text-muted);">
+                            <li><strong>Contents:</strong> Read-only</li>
+                            <li><strong>Pull requests:</strong> Read and Write</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-body">
+                        <h3>Initiate AI Analysis</h3>
+                        <p>Paste the PR URL and your Token into the dashboard. Optionally, specify a focus (e.g., "Check
+                            for memory leaks") and hit <strong>Analyze Pull Request</strong>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 2rem; background: #f8fafc; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-main);">
+                <p style="font-size: 0.8125rem; color: var(--text-muted); line-height: 1.5;">
+                    <i data-lucide="info"
+                        style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    The AI will process the diff, retrieve context using RAG, and post a categorized review comment
+                    directly on your GitHub PR.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/app.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

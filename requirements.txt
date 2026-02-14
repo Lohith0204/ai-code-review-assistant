@@ -1,0 +1,13 @@
+fastapi
+openai
+sentence-transformers
+numpy
+pydantic
+firebase-admin
+uvicorn
+requests
+PyGithub
+python-dotenv
+pytest
+aiofiles
+httpx

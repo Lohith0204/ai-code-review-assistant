@@ -1,0 +1,99 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 pytest
+    
+    - name: Lint with flake8
+      run: |
+        # Stop build if there are Python syntax errors or undefined names
+        flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Import check
+      run: |
+        python -c "from app.main import app; print('✅ All imports resolved')"
+    
+    - name: Run tests
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'dummy_key_for_tests' }}
+        SKIP_AUTH: 'true'
+      run: |
+        pytest tests/ -v --tb=short
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t ai-code-review-assistant:${{ github.sha }} .
+        docker tag ai-code-review-assistant:${{ github.sha }} ai-code-review-assistant:latest
+    
+    - name: Test Docker health check
+      run: |
+        # Start container in background
+        docker run -d --name test-container -p 8000:8000 \
+          -e SKIP_AUTH=true \
+          -e OPENAI_API_KEY=dummy \
+          ai-code-review-assistant:latest
+        
+        # Wait for container to be healthy
+        timeout 60 bash -c 'until docker inspect --format="{{.State.Health.Status}}" test-container | grep -q healthy; do sleep 2; done'
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/health || exit 1
+        
+        # Cleanup
+        docker stop test-container
+        docker rm test-container
+    
+    - name: Save Docker image (optional)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        docker save ai-code-review-assistant:latest | gzip > ai-code-review-assistant.tar.gz
+    
+    - name: Upload artifact
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: ai-code-review-assistant.tar.gz
+        retention-days: 7
