@@ -50,12 +50,12 @@ RUN useradd -m -u 1000 appuser && \
 
 USER appuser
 
-# Expose port
+# Expose port (optional metadata, Render uses $PORT)
 EXPOSE 8000
 
-# Health check
+# Health check (dynamic port)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:8000/health').raise_for_status()" || exit 1
+  CMD python -c "import os, requests; port = os.getenv('PORT', '8000'); requests.get(f'http://localhost:{port}/health').raise_for_status()" || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application (sh -c is used to expand $PORT)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
