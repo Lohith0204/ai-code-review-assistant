@@ -58,6 +58,14 @@ loginButton.addEventListener('click', async () => {
     }
 });
 
+// View Architecture
+const viewDocsButton = document.getElementById('viewDocsButton');
+if (viewDocsButton) {
+    viewDocsButton.addEventListener('click', () => {
+        window.open('https://github.com/Lohith0204/ai-code-review-assistant#overview', '_blank');
+    });
+}
+
 // Logout
 logoutButton.addEventListener('click', async () => {
     try {
