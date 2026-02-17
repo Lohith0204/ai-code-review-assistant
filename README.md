@@ -5,8 +5,7 @@
 ---
 
 ### 🌐 Live Deployment
-- **Backend API (Render)**: [Add URL here]
-- **Example Pull Request Review**: [Add GitHub PR link here]
+- **Review Dashboard**: [ai-code-review-assistant-ggw8.onrender.com](https://ai-code-review-assistant-ggw8.onrender.com/)
 
 ---
 
