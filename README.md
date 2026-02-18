@@ -61,12 +61,12 @@ The architecture separates the **API layer**, **Security controls**, and the **R
 
 ### Dashboard Interface
 Clean, developer-focused dashboard with structured review output and collapsible feedback sections.
-![Dashboard Preview](docs/screenshots/dashboard.png)
+![Dashboard Preview](<docs/screenshots/Screenshot 2026-02-14 183001.png>)
 
 ### GitHub Pull Request Review Comment
 Automated PR feedback posted directly to the GitHub discussion thread with categorized findings.
 *Real webhook-triggered review generated using contextual RAG retrieval and GPT-4o.*
-![GitHub Review Comment](docs/screenshots/github_comment.png)
+![GitHub Review Comment](<docs/screenshots/Screenshot 2026-02-14 202241.png>)
 
 ### RAG-Based Structured Output
 Example structured output showing Summary, Risks, and Suggestions sections generated from contextual retrieval.
