@@ -70,7 +70,7 @@ Automated PR feedback posted directly to the GitHub discussion thread with categ
 
 ### RAG-Based Structured Output
 Example structured output showing Summary, Risks, and Suggestions sections generated from contextual retrieval.
-![Structured Output](docs/screenshots/structured_output.png)
+![Structured Output](<docs/screenshots/Screenshot 2026-02-18 201102.png>)
 
 ---
 
