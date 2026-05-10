@@ -118,6 +118,7 @@ ai-code-review-assistant/
 ├── tests/                # Unit & Integration Tests
 ├── Dockerfile            # Production Container Config
 ├── requirements.txt      # Dependency Manifest
+├── LICENSE
 └── README.md             # Project Master Info
 ```
 
